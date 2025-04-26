@@ -1,0 +1,31 @@
+# ベースイメージ(CUDA)の指定
+FROM nvidia/cuda:12.3.2-cudnn9-devel-ubuntu22.04
+
+# 必要なパッケージをインストール
+RUN apt-get update && apt-get install -y python3-pip python3-venv git nano screen zip wget
+
+# VS Code Server を事前にインストール（最新安定版を利用）
+RUN mkdir -p /root/.vscode-server/bin/latest && \
+    wget -O vscode-server.tar.gz "https://update.code.visualstudio.com/latest/server-linux-x64/stable" && \
+    tar -xzvf vscode-server.tar.gz -C /root/.vscode-server/bin/latest && \
+    rm vscode-server.tar.gz
+
+# 作業ディレクトリを設定
+WORKDIR /workspace
+
+# Python仮想環境の作成
+RUN python3 -m venv /opt/.venv
+
+# 仮想環境をアクティベートするコマンドを.bashrcに追加
+RUN echo "source /opt/.venv/bin/activate" >> /root/.bashrc
+
+# JupyterLab,HuggingFaceHub,WandBのインストール
+RUN /opt/.venv/bin/pip install Jupyter \
+    jupyterlab \
+    huggingface_hub[cli] \
+    wandb
+
+#RUN /opt/.venv/bin/pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# コンテナの起動時にbashを実行
+CMD ["/bin/bash"]
